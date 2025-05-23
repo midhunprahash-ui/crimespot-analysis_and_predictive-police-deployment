@@ -109,6 +109,7 @@ const AddCrime = () => {
     "Palayamkottai Road", 
     "Millerpuram", 
     "Bryant Nagar", 
+    "Street 1",
     "Thoothukudi District",
     "Other"
   ];
