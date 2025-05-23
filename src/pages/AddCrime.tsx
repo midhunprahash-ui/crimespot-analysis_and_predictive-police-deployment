@@ -45,14 +45,14 @@ const AddCrime = () => {
   const [customArea, setCustomArea] = useState(false);
   const [customCrimeType, setCustomCrimeType] = useState(false);
   const navigate = useNavigate();
-  
+
   const defaultValues: Partial<CrimeFormValues> = {
     riskLevel: "moderate",
     count: 1,
     date: new Date(),
     time: format(new Date(), 'HH:mm')
   };
-  
+
   const form = useForm<CrimeFormValues>({
     resolver: zodResolver(crimeFormSchema),
     defaultValues,
@@ -60,7 +60,7 @@ const AddCrime = () => {
 
   const onSubmit = async (data: CrimeFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       const selectedDate = new Date(data.date);
       const [hours, minutes] = data.time.split(':');
@@ -81,12 +81,12 @@ const AddCrime = () => {
         festival: data.festival,
         riskLevel: data.riskLevel
       });
-      
+
       toast({
         title: "Crime record added successfully",
         description: `Added ${data.count} ${data.crimeType} incidents in ${data.area}.`,
       });
-      
+
       // Reset custom input states along with form
       setCustomArea(false);
       setCustomCrimeType(false);
@@ -102,24 +102,24 @@ const AddCrime = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   const areas = [
-    "Thoothukudi Port", 
-    "Tiruchendur Road", 
-    "Palayamkottai Road", 
-    "Millerpuram", 
-    "Bryant Nagar", 
+    "Thoothukudi Port",
+    "Tiruchendur Road",
+    "Palayamkottai Road",
+    "Millerpuram",
+    "Bryant Nagar",
     "Street 1",
     "Thoothukudi District",
     "Other"
   ];
-  
+
   const crimeTypes = ["theft", "assault", "vandalism", "drugs", "other"];
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="pt-20 pb-16 container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -129,7 +129,7 @@ const AddCrime = () => {
             </p>
           </div>
         </div>
-        
+
         <Card className="w-full max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -140,7 +140,7 @@ const AddCrime = () => {
               Enter the details of the crime incident below
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -152,7 +152,7 @@ const AddCrime = () => {
                       <FormItem>
                         <FormLabel>Area</FormLabel>
                         {!customArea ? (
-                          <Select 
+                          <Select
                             onValueChange={(value) => {
                               if (value === "Other") {
                                 setCustomArea(true);
@@ -160,7 +160,7 @@ const AddCrime = () => {
                               } else {
                                 field.onChange(value);
                               }
-                            }} 
+                            }}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -177,8 +177,8 @@ const AddCrime = () => {
                         ) : (
                           <div className="space-y-2">
                             <FormControl>
-                              <Input 
-                                placeholder="Enter area name" 
+                              <Input
+                                placeholder="Enter area name"
                                 {...field}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 value={field.value}
@@ -209,7 +209,7 @@ const AddCrime = () => {
                       <FormItem>
                         <FormLabel>Crime Type</FormLabel>
                         {!customCrimeType ? (
-                          <Select 
+                          <Select
                             onValueChange={(value) => {
                               if (value === "other") {
                                 setCustomCrimeType(true);
@@ -217,7 +217,7 @@ const AddCrime = () => {
                               } else {
                                 field.onChange(value);
                               }
-                            }} 
+                            }}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -236,8 +236,8 @@ const AddCrime = () => {
                         ) : (
                           <div className="space-y-2">
                             <FormControl>
-                              <Input 
-                                placeholder="Enter crime type" 
+                              <Input
+                                placeholder="Enter crime type"
                                 {...field}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 value={field.value}
@@ -260,7 +260,7 @@ const AddCrime = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="count"
@@ -277,7 +277,7 @@ const AddCrime = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="riskLevel"
@@ -376,10 +376,10 @@ const AddCrime = () => {
                     )}
                   />
                 </div>
-                
+
                 <CardFooter className="flex justify-end px-0 pb-0">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="ml-auto"
                     disabled={isSubmitting}
                   >
