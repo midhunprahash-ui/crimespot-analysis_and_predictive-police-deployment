@@ -14,6 +14,7 @@ class CrimePredictor:
         self.prepare_data()
 
     def prepare_data(self):
+        # Convert date components to datetime and add hour
         self.df['date'] = pd.to_datetime(self.df[['year', 'month', 'day']])
         
         categorical_columns = ['area', 'crimeType']
@@ -33,6 +34,15 @@ class CrimePredictor:
                     series = series.asfreq('D', fill_value=0)
                     self.time_series[(area, crime_type)] = series
 
+    def predict_crime_time(self, area, crime_type):
+        # Get historical hour patterns for this area and crime type
+        mask = (self.df['area'] == self.label_encoders['area'].transform([area])[0]) & \
+               (self.df['crimeType'] == self.label_encoders['crimeType'].transform([crime_type])[0])
+        hours = self.df[mask]['hour'].values
+        if len(hours) == 0:
+            return 12  # Default to noon if no historical data
+        return int(np.mean(hours))
+
     def train_models(self):
         for (area, crime_type), series in self.time_series.items():
             try:
@@ -41,33 +51,38 @@ class CrimePredictor:
             except:
                 print(f"Could not train model for area {area} and crime type {crime_type}")
 
-    def predict_future(self, area, crime_type, days=7):
-        area_encoded = self.label_encoders['area'].transform([area])[0]
-        crime_type_encoded = self.label_encoders['crimeType'].transform([crime_type])[0]
-        
-        model = self.models.get((area_encoded, crime_type_encoded))
-        if model is None:
-            return None
+    def predict_future(self, days=7):
+        current_date = datetime.now()
+        predictions = []
 
-        forecast = model.forecast(steps=days)
-        
-        risk_levels = []
-        for pred in forecast:
-            if pred <= 2:
-                risk_levels.append('low')
-            elif pred <= 5:
-                risk_levels.append('moderate')
-            else:
-                risk_levels.append('high')
+        # Get all unique areas and crime types
+        areas = self.label_encoders['area'].inverse_transform(range(len(self.label_encoders['area'].classes_)))
+        crime_types = self.label_encoders['crimeType'].inverse_transform(range(len(self.label_encoders['crimeType'].classes_)))
 
-        last_date = self.df['date'].max()
-        dates = [(last_date + timedelta(days=i+1)).strftime('%Y-%m-%d') for i in range(days)]
-        
-        return pd.DataFrame({
-            'date': dates,
-            'predicted_count': forecast,
-            'risk_level': risk_levels
-        })
+        # Make predictions for each area and crime type
+        for area in areas:
+            for crime_type in crime_types:
+                area_encoded = self.label_encoders['area'].transform([area])[0]
+                crime_type_encoded = self.label_encoders['crimeType'].transform([crime_type])[0]
+                
+                model = self.models.get((area_encoded, crime_type_encoded))
+                if model is not None:
+                    forecast = model.forecast(steps=days)
+                    predicted_hour = self.predict_crime_time(area, crime_type)
+                    
+                    for i, pred in enumerate(forecast):
+                        if pred > 0.5:  # Only include predictions with significant probability
+                            pred_date = current_date + timedelta(days=i)
+                            predictions.append({
+                                'date': pred_date.strftime('%Y-%m-%d'),
+                                'time': f'{predicted_hour:02d}:00',
+                                'area': area,
+                                'crime_type': crime_type,
+                                'predicted_count': round(pred, 2),
+                                'risk_level': 'high' if pred > 5 else 'moderate' if pred > 2 else 'low'
+                            })
+
+        return pd.DataFrame(predictions).sort_values(['date', 'time', 'risk_level'])
 
 def main():
     predictor = CrimePredictor('src/data/storage/thoothukudi_crime_records.csv')
@@ -75,17 +90,14 @@ def main():
     print("Training models...")
     predictor.train_models()
     
-    area = 'Beach Road'
-    crime_type = 'theft'
-    days = 7
+    print("\nPredicting crimes for the next 7 days:")
+    predictions = predictor.predict_future()
     
-    print(f"\nPredicting {crime_type} in {area} for next {days} days:")
-    predictions = predictor.predict_future(area, crime_type, days)
-    
-    if predictions is not None:
-        print(predictions)
+    if not predictions.empty:
+        print("\nPredicted Crime Patterns:")
+        print(predictions.to_string(index=False))
     else:
-        print("No prediction available for this combination")
+        print("No predictions available")
 
 if __name__ == "__main__":
     main()
