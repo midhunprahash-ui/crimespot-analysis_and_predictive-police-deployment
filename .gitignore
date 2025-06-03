@@ -1,0 +1,27 @@
+.venv
+# Python    
+__pycache__
+*.pyc
+# Cython
+*.so
+# C++
+*.dll
+*.exp
+*.lib
+*.pdb
+# Fortran
+*.mod
+# Go
+*.exe
+# Rust
+*.d
+*.rlib
+*.pdb
+# Swift
+*.swift-dSYM
+# TypeScript
+*.tsbuildinfo
+# Vala
+*.vapi
+# WebAssembly
+*.wasm
